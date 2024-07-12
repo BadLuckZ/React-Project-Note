@@ -3,8 +3,7 @@ import "@picocss/pico";
 import "./App.css";
 
 function App() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+  const [noteData, setNoteData] = useState({ title: "", content: "" });
   const [notes, setNotes] = useState([]);
 
   return (
@@ -14,6 +13,14 @@ function App() {
         {notes.map((note, index) => (
           <article key={index} className="note-item">
             <div className="note-title">{note.title}</div>
+            <button
+              className="note-edit-btn"
+              onClick={() => {
+                setNoteData(note);
+              }}
+            >
+              Edit
+            </button>
           </article>
         ))}
       </div>
@@ -28,9 +35,9 @@ function App() {
           name="note-title"
           placeholder="Title of the Note"
           onChange={(event) => {
-            setTitle(event.target.value);
+            setNoteData({ ...noteData, title: event.target.value });
           }}
-          value={title}
+          value={noteData.title}
           required
         />
       </label>
@@ -43,18 +50,31 @@ function App() {
           name="note-content"
           placeholder="Have any idea? Write it!"
           onChange={(event) => {
-            setContent(event.target.value);
+            setNoteData({ ...noteData, content: event.target.value });
           }}
-          value={content}
+          value={noteData.content}
           required
         />
       </label>
 
       <button
         onClick={() => {
-          setNotes([...notes, { title, content }]);
-          setTitle("");
-          setContent("");
+          // Save the title and content
+          if (noteData.id) {
+            // Save to the exist note
+            setNotes(
+              notes.map((note) => {
+                if (note.id === noteData.id) {
+                  return noteData;
+                }
+                return note;
+              })
+            );
+          } else {
+            // Save as the new note
+            setNotes([...notes, { ...noteData, id: Date.now() }]);
+          }
+          setNoteData({ title: "", content: "" });
         }}
       >
         Save
