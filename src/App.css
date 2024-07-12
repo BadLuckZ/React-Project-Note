@@ -21,6 +21,10 @@
   align-items: center;
 }
 
+.note-editing{
+  outline: 2px solid lightblue;
+}
+
 .note-title{
   font-size: 1.125rem;
   font-weight: bold;
