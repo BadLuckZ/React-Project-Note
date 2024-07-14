@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import "@picocss/pico";
 import "./App.css";
 
@@ -35,19 +35,6 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
 }
 
 /**
- * Create a delay for this function
- */
-function useDebounceFn(fn, delay) {
-  const timeout = useRef(null);
-  return (...args) => {
-    clearTimeout(timeout.current);
-    timeout.current = setTimeout(() => {
-      fn(...args);
-    }, delay);
-  };
-}
-
-/**
  * Create a delay for this value
  */
 function useDebounceValue(value, delay) {
@@ -74,10 +61,12 @@ function App() {
   const debouncedNotes = useDebounceValue(notes, 2000);
   const [deletingItem, setDeletingItem] = useState(null);
 
+  // Handle LocalStorage
   useEffect(() => {
     localStorage.setItem("notes", JSON.stringify(notes));
   }, [debouncedNotes]);
 
+  // Syncing tabs
   useEffect(() => {
     function handleStorageChange(e) {
       if (e.key === "notes") {
@@ -90,21 +79,55 @@ function App() {
     };
   }, []);
 
-  const saveNote = useDebounceFn((newData) => {
-    const existed = notes.find((note) => note.id === newData.id);
-    if (existed) {
-      setNotes(
-        notes.map((note) => {
-          if (note.id === noteData.id) {
-            return newData;
-          }
-          return note;
-        })
-      );
-    } else {
-      setNotes([...notes, newData]);
-    }
-  }, 1000);
+  const saveNote = useCallback(
+    (newData) => {
+      const existed = notes.find((note) => note.id === newData.id);
+      if (existed) {
+        setNotes(
+          notes.map((note) => {
+            if (note.id === noteData.id) {
+              return newData;
+            }
+            return note;
+          })
+        );
+      } else {
+        setNotes([...notes, newData]);
+      }
+    },
+    [notes]
+  );
+
+  // Shortcut
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "x" && e.ctrlKey) {
+        e.preventDefault();
+        // Redo
+        const lastNote = future[0];
+        if (lastNote) {
+          setHistory([noteData, ...history]);
+          setNoteData(lastNote);
+          saveNote(lastNote);
+          setFuture(future.slice(1));
+        }
+      } else if (e.key === "z" && e.ctrlKey) {
+        e.preventDefault();
+        // Undo
+        const prevNote = history[0];
+        if (prevNote) {
+          setHistory(history.slice(1));
+          setNoteData(prevNote);
+          saveNote(prevNote);
+          setFuture([noteData, ...future]);
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [future, history, noteData, saveNote]);
 
   /**
    * Helps define a field to update with a value
@@ -180,6 +203,7 @@ function App() {
                     notes.filter((noteData) => noteData.id !== deletingItem.id)
                   );
                   setDeletingItem(null);
+                  setNoteData({ title: "", content: "" });
                 }}
               >
                 Submit
