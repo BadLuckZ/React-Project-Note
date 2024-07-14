@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "@picocss/pico";
 import "./App.css";
 
@@ -34,6 +34,19 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
   );
 }
 
+/**
+ * Create a delay for this function
+ */
+function useDebounceFn(fn, delay = 1000) {
+  const timeout = useRef(null);
+  return (...args) => {
+    clearTimeout(timeout.current);
+    timeout.current = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  };
+}
+
 function App() {
   const [noteData, setNoteData] = useState([]);
   const [notes, setNotes] = useState(() => {
@@ -58,7 +71,7 @@ function App() {
     };
   }, []);
 
-  const saveNote = (newData) => {
+  const saveNote = useDebounceFn((newData) => {
     const existed = notes.find((note) => note.id === newData.id);
     if (existed) {
       setNotes(
@@ -72,7 +85,7 @@ function App() {
     } else {
       setNotes([...notes, newData]);
     }
-  };
+  }, 1000);
 
   /**
    * Helps define a field to update with a value
