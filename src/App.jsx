@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "@picocss/pico";
 import "./App.css";
 
@@ -33,8 +33,14 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
 
 function App() {
   const [noteData, setNoteData] = useState({ title: "", content: "" });
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState(() => {
+    return JSON.parse(localStorage.getItem("notes") ?? "[]");
+  });
   const [deletingItem, setDeletingItem] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem("notes", JSON.stringify(notes));
+  }, [notes]);
 
   return (
     <main className="container">
