@@ -37,7 +37,7 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
 /**
  * Create a delay for this function
  */
-function useDebounceFn(fn, delay = 1000) {
+function useDebounceFn(fn, delay) {
   const timeout = useRef(null);
   return (...args) => {
     clearTimeout(timeout.current);
@@ -50,7 +50,7 @@ function useDebounceFn(fn, delay = 1000) {
 /**
  * Create a delay for this value
  */
-function useDebounceValue(value, delay = 1000) {
+function useDebounceValue(value, delay) {
   const [debounceValue, setDebounceValue] = useState(value);
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -64,7 +64,9 @@ function useDebounceValue(value, delay = 1000) {
 }
 
 function App() {
-  const [noteData, setNoteData] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [future, setFuture] = useState([]);
+  const [noteData, setNoteData] = useState({ title: "", content: "" });
   const [notes, setNotes] = useState(() => {
     const initialNotes = localStorage.getItem("notes");
     return JSON.parse(initialNotes) ?? [];
@@ -116,6 +118,7 @@ function App() {
       };
       saveNote(newData);
       setNoteData(newData);
+      setHistory([noteData, ...history]);
     } else {
       // Create the new note
       const newId = Date.now();
@@ -126,6 +129,7 @@ function App() {
       };
       saveNote(newData);
       setNoteData(newData);
+      setHistory([noteData, ...history]);
     }
   };
 
@@ -219,8 +223,41 @@ function App() {
               onChange={(e) => updateField("content", e.target.value)}
               value={noteData.content}
               required
-            />
+            ></textarea>
           </label>
+
+          <div style={{ display: "flex", gap: 16 }}>
+            <button
+              style={{ width: "auto" }}
+              disabled={!history.length}
+              onClick={() => {
+                const prevNote = history[0];
+                if (prevNote) {
+                  setHistory(history.slice(1));
+                  setNoteData(prevNote);
+                  saveNote(prevNote);
+                  setFuture([noteData, ...future]);
+                }
+              }}
+            >
+              Undo
+            </button>
+            <button
+              style={{ width: "auto" }}
+              disabled={!future.length}
+              onClick={() => {
+                const lastNote = future[0];
+                if (lastNote) {
+                  setHistory([noteData, ...history]);
+                  setNoteData(lastNote);
+                  saveNote(lastNote);
+                  setFuture(future.slice(1));
+                }
+              }}
+            >
+              Redo
+            </button>
+          </div>
         </>
       )}
     </main>
