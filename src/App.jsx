@@ -35,9 +35,10 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
 }
 
 function App() {
-  const [noteData, setNoteData] = useState(null);
+  const [noteData, setNoteData] = useState([]);
   const [notes, setNotes] = useState(() => {
-    return JSON.parse(localStorage.getItem("notes") ?? "[]");
+    const initialNotes = localStorage.getItem("notes");
+    return JSON.parse(initialNotes) ?? [];
   });
   const [deletingItem, setDeletingItem] = useState(null);
 
@@ -57,6 +58,22 @@ function App() {
     };
   }, []);
 
+  const saveNote = (newData) => {
+    const existed = notes.find((note) => note.id === newData.id);
+    if (existed) {
+      setNotes(
+        notes.map((note) => {
+          if (note.id === noteData.id) {
+            return newData;
+          }
+          return note;
+        })
+      );
+    } else {
+      setNotes([...notes, newData]);
+    }
+  };
+
   /**
    * Helps define a field to update with a value
    */
@@ -67,14 +84,7 @@ function App() {
         ...noteData,
         [field]: value,
       };
-      setNotes(
-        notes.map((note) => {
-          if (note.id === noteData.id) {
-            return newData;
-          }
-          return note;
-        })
-      );
+      saveNote(newData);
       setNoteData(newData);
     } else {
       // Create the new note
@@ -84,7 +94,7 @@ function App() {
         id: newId,
         [field]: value,
       };
-      setNotes([...notes, newData]);
+      saveNote(newData);
       setNoteData(newData);
     }
   };
@@ -102,20 +112,24 @@ function App() {
           Write
         </button>
       </div>
-      <div className="note-list">
-        {notes.map((note) => (
-          <NoteWidget
-            note={note}
-            editing={note.id === noteData.id}
-            onEditNote={() => {
-              setNoteData(note);
-            }}
-            onDeleteNote={() => {
-              setDeletingItem(note);
-            }}
-          />
-        ))}
-      </div>
+      {notes.length > 0 ? (
+        <div className="note-list">
+          {notes.map((note) => (
+            <NoteWidget
+              note={note}
+              editing={note.id === noteData.id}
+              onEditNote={() => {
+                setNoteData(note);
+              }}
+              onDeleteNote={() => {
+                setDeletingItem(note);
+              }}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="empty-notes">No Notes</div>
+      )}
 
       {/* Remove Note Decision */}
       {deletingItem ? (
