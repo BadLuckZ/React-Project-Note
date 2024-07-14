@@ -51,9 +51,10 @@ function useDebounceValue(value, delay) {
 }
 
 function App() {
+  const blankNote = { title: "", content: "", image: "" };
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
-  const [noteData, setNoteData] = useState({ title: "", content: "" });
+  const [noteData, setNoteData] = useState(blankNote);
   const [notes, setNotes] = useState(() => {
     const initialNotes = localStorage.getItem("notes");
     return JSON.parse(initialNotes) ?? [];
@@ -163,7 +164,7 @@ function App() {
         <button
           className="note-btn"
           onClick={() => {
-            setNoteData({ title: "", content: "" });
+            setNoteData(blankNote);
           }}
         >
           Write
@@ -203,7 +204,7 @@ function App() {
                     notes.filter((noteData) => noteData.id !== deletingItem.id)
                   );
                   setDeletingItem(null);
-                  setNoteData({ title: "", content: "" });
+                  setNoteData(blankNote);
                 }}
               >
                 Submit
@@ -248,6 +249,22 @@ function App() {
               value={noteData.content}
               required
             ></textarea>
+          </label>
+
+          <label>
+            Image
+            <img
+              src={noteData.image}
+              style={{ width: 100, display: "block" }}
+            />
+            <input
+              type="file"
+              onChange={(e) => {
+                if (e.target.files.length) {
+                  updateField("image", URL.createObjectURL(e.target.files[0]));
+                }
+              }}
+            />
           </label>
 
           <div style={{ display: "flex", gap: 16 }}>
