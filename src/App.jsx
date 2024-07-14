@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import "@picocss/pico";
 import "./App.css";
 
+/**
+ * Create the note area stored many created notes.
+ */
 function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
   return (
     <article
@@ -32,7 +35,7 @@ function NoteWidget({ note, editing, onEditNote, onDeleteNote }) {
 }
 
 function App() {
-  const [noteData, setNoteData] = useState({ title: "", content: "" });
+  const [noteData, setNoteData] = useState(null);
   const [notes, setNotes] = useState(() => {
     return JSON.parse(localStorage.getItem("notes") ?? "[]");
   });
@@ -54,9 +57,51 @@ function App() {
     };
   }, []);
 
+  /**
+   * Helps define a field to update with a value
+   */
+  const updateField = (field, value) => {
+    if (noteData.id) {
+      // Update the note
+      const newData = {
+        ...noteData,
+        [field]: value,
+      };
+      setNotes(
+        notes.map((note) => {
+          if (note.id === noteData.id) {
+            return newData;
+          }
+          return note;
+        })
+      );
+      setNoteData(newData);
+    } else {
+      // Create the new note
+      const newId = Date.now();
+      const newData = {
+        ...noteData,
+        id: newId,
+        [field]: value,
+      };
+      setNotes([...notes, newData]);
+      setNoteData(newData);
+    }
+  };
+
   return (
     <main className="container">
-      <h1 className="app-title">My Notes</h1>
+      <div className="app-head">
+        <h1 className="app-title">My Notes</h1>
+        <button
+          className="note-btn"
+          onClick={() => {
+            setNoteData({ title: "", content: "" });
+          }}
+        >
+          Write
+        </button>
+      </div>
       <div className="note-list">
         {notes.map((note) => (
           <NoteWidget
@@ -105,58 +150,35 @@ function App() {
 
       <br />
 
-      <label htmlFor="note-title">
-        Title
-        <input
-          type="text"
-          id="note-title"
-          name="note-title"
-          placeholder="Title of the Note"
-          onChange={(event) => {
-            setNoteData({ ...noteData, title: event.target.value });
-          }}
-          value={noteData.title}
-          required
-        />
-      </label>
+      {noteData && (
+        <>
+          <label htmlFor="note-title">
+            Title
+            <input
+              type="text"
+              id="note-title"
+              name="note-title"
+              placeholder="Title of the Note"
+              onChange={(e) => updateField("title", e.target.value)}
+              value={noteData.title}
+              required
+            />
+          </label>
 
-      <label htmlFor="note-content">
-        Content
-        <textarea
-          type="text"
-          id="note-content"
-          name="note-content"
-          placeholder="Have any idea? Write it!"
-          onChange={(event) => {
-            setNoteData({ ...noteData, content: event.target.value });
-          }}
-          value={noteData.content}
-          required
-        />
-      </label>
-
-      <button
-        onClick={() => {
-          // Save the title and content
-          if (noteData.id) {
-            // Save to the exist note
-            setNotes(
-              notes.map((note) => {
-                if (note.id === noteData.id) {
-                  return noteData;
-                }
-                return note;
-              })
-            );
-          } else {
-            // Save as the new note
-            setNotes([...notes, { ...noteData, id: Date.now() }]);
-          }
-          setNoteData({ title: "", content: "" });
-        }}
-      >
-        Save
-      </button>
+          <label htmlFor="note-content">
+            Content
+            <textarea
+              type="text"
+              id="note-content"
+              name="note-content"
+              placeholder="Have any idea? Write it!"
+              onChange={(e) => updateField("content", e.target.value)}
+              value={noteData.content}
+              required
+            />
+          </label>
+        </>
+      )}
     </main>
   );
 }

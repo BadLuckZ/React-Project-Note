@@ -1,6 +1,19 @@
-.app-title{
+.app-head{
+  display: flex;
+  justify-content: space-between;
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+.app-title{
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.note-btn{
+  width: auto;
 }
 
 .note-list{
@@ -9,6 +22,11 @@
   overflow: auto;
   margin: -1rem;
   padding: 1rem;
+}
+
+.note-title{
+  font-size: 1.125rem;
+  font-weight: bold;
 }
 
 .note-item{
@@ -23,11 +41,6 @@
 
 .note-editing{
   outline: 2px solid lightblue;
-}
-
-.note-title{
-  font-size: 1.125rem;
-  font-weight: bold;
 }
 
 .note-edit-btn .note-delete-btn{
