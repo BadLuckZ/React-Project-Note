@@ -47,17 +47,34 @@ function useDebounceFn(fn, delay = 1000) {
   };
 }
 
+/**
+ * Create a delay for this value
+ */
+function useDebounceValue(value, delay = 1000) {
+  const [debounceValue, setDebounceValue] = useState(value);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebounceValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [value, delay]);
+  return debounceValue;
+}
+
 function App() {
   const [noteData, setNoteData] = useState([]);
   const [notes, setNotes] = useState(() => {
     const initialNotes = localStorage.getItem("notes");
     return JSON.parse(initialNotes) ?? [];
   });
+  const debouncedNotes = useDebounceValue(notes, 2000);
   const [deletingItem, setDeletingItem] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
+  }, [debouncedNotes]);
 
   useEffect(() => {
     function handleStorageChange(e) {
